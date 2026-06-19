@@ -33,9 +33,11 @@ USER root
 
 # The vault: the MCP's bundled sample vault (fake data), locked to mcp only.
 # go-rwx removes all access for group/other, so `agent` cannot read or list it.
-RUN cp -R /opt/mcp/examples/sample-vault /vault \
-    && chown -R mcp:mcp /vault \
-    && chmod -R go-rwx /vault
+RUN cp -R /opt/mcp/examples/sample-vault /vault
+# Add a `sensitive`-tier sample doc so the demo shows all three gate behaviors:
+# internal (released), sensitive (released + advisory), restricted (withheld).
+COPY ["read-boundary/sensitive-sample.md", "/vault/02 Infrastructure/Service Handoff.md"]
+RUN chown -R mcp:mcp /vault && chmod -R go-rwx /vault
 
 # The locked launcher: the single channel to the vault. Runs the MCP as mcp with
 # the vault path fixed. Root-owned, not writable by agent.
@@ -49,6 +51,8 @@ RUN chmod 0440 /etc/sudoers.d/agent && visudo -cf /etc/sudoers.d/agent
 # The agent's verification client needs the MCP Python client library.
 RUN pip install --no-cache-dir "mcp>=1.0"
 COPY read-boundary/verify.py /usr/local/bin/verify.py
+COPY read-boundary/mcp-read.py /usr/local/bin/mcp-read
+RUN chmod 0755 /usr/local/bin/mcp-read
 
 USER agent
 WORKDIR /home/agent

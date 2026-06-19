@@ -27,6 +27,7 @@ runs the server; `agent` is the unprivileged client. The checks run **as `agent`
 | Agent cannot read the vault directly | vault is `mcp`-owned, mode `go-rwx`; agent gets permission denied |
 | Agent cannot borrow `mcp` another way | sudoers lets agent run *only* the launcher, not `cat`/`ls`/a shell as `mcp` |
 | Internal content IS reachable | only through the MCP, which releases `internal` bodies |
+| Sensitive content is released, but flagged | the MCP returns the body with a handle-carefully advisory |
 | Restricted content is withheld | the MCP sensitivity gate holds back the `restricted` doc |
 
 ```sh
@@ -72,12 +73,15 @@ bin/bounded-local-ai-demo clean      # remove both images
 
 ## Seeing it for yourself
 
-Read boundary — try to read the vault directly as the agent:
+Read boundary — the agent's only path to the vault is the gate. Try it directly,
+then through the MCP:
 
 ```sh
 docker run --rm -it --hostname demo --entrypoint bash bounded-local-ai-demo-read
 # then, as agent:
-cat "/vault/02 Infrastructure/Local PKI/Offline CA.md"   # Permission denied
+cat "/vault/02 Infrastructure/Service Handoff.md"   # Permission denied (no direct path)
+mcp-read infra-service-handoff                       # released via the gate (sensitive + advisory)
+mcp-read infra-offline-ca                            # withheld via the gate (restricted)
 ```
 
 Action boundary — a high-blast-radius command must be confirmed, and fails closed
@@ -101,7 +105,8 @@ read-boundary/      the OS-enforced isolation container
   Dockerfile          installs the MCP as mcp, copies the sample vault (go-rwx)
   run-mcp             the single channel: runs the MCP as mcp over stdio
   agent.sudoers       the lock: agent may run only run-mcp (no args) as mcp
-  verify.py           the four isolation checks, run as agent
+  verify.py           the isolation checks, run as agent
+  mcp-read            agent-side helper: read a doc through the gate (body or withheld)
 action-boundary/    the Cordon effect-gate demo
   Dockerfile          clones cordon (zero-dependency harness), adds the sample tool
   sample-tool         declares read / local_write / deploy commands
