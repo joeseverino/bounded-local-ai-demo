@@ -1,0 +1,10 @@
+# <type>(<scope>): <summary>          ← imperative mood, ≤ 72 chars
+#   types: feat fix refactor docs test chore ci build perf
+#   versioning (release-please reads these): fix → patch, feat → minor,
+#     feat!: or a `BREAKING CHANGE:` footer → major
+#
+# Why this change is needed (the diff already shows *what* changed):
+#
+#
+# Solo-authored. No Co-Authored-By and no AI/Claude attribution — the commit-msg
+# hook enforces this. Wire this template per clone with scripts/setup-hooks.sh.

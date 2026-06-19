@@ -1,0 +1,19 @@
+#!/bin/sh
+# run-mcp — the single channel between the agent and the vault.
+#
+# The agent invokes this only through `sudo -u mcp /usr/local/bin/run-mcp`
+# (see /etc/sudoers.d/agent). It runs the severino-vault-mcp server as the mcp
+# user, over stdio, with the vault path fixed. Every byte of vault content the
+# agent ever sees passes through the MCP sensitivity gate started here.
+#
+# It takes no arguments and ignores any, so the agent cannot redirect it at a
+# different path or turn it into a shell.
+set -eu
+
+export HOME=/home/mcp
+export UV_CACHE_DIR=/home/mcp/.cache/uv
+export UV_NO_PROGRESS=1
+export SVMC_VAULT_PATH=/vault
+
+# uv writes diagnostics to stderr; stdout stays clean for the JSON-RPC protocol.
+exec uv run --frozen --no-editable --directory /opt/mcp severino-vault-mcp

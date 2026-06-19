@@ -1,0 +1,23 @@
+[project]
+name = "bounded-local-ai-demo"
+# Release version is tracked in version.txt (release-please "simple" type); this
+# field exists only so uv can resolve the dev toolchain.
+version = "0.0.0"
+description = "OS-enforced isolation demo for bounded local AI workflows."
+requires-python = ">=3.11"
+dependencies = []
+
+# Dev-only toolchain, synced by default with `uv sync`. Running the demo itself
+# needs only Docker; these are for regenerating the contract, linting, and tests.
+[dependency-groups]
+dev = ["cordon-emit", "ruff>=0.6", "pytest>=8"]
+
+[tool.uv.sources]
+cordon-emit = { git = "https://github.com/joeseverino/cordon", subdirectory = "emitters/python" }
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

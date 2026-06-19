@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+"""Thin entry point for the demo CLI; the surface lives in src/bounded_local_ai_demo.
+
+Adds src/ to the path so the tool runs whether or not the package is installed,
+then delegates to the command surface. Both `-h` and `--describe` render from the
+one parser declared there, so the human help and the machine contract cannot drift.
+"""
+
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
+
+# cordon-emit (dev-only, used by --describe) lives in the project venv. When this
+# runs outside `uv run` — e.g. the pre-push drift check — add the venv so the
+# import resolves. Running the demo itself needs only Docker, so a missing venv
+# is fine.
+for _sp in sorted((ROOT / ".venv" / "lib").glob("python*/site-packages")):
+    sys.path.append(str(_sp))
+
+from bounded_local_ai_demo.cli import main  # noqa: E402  (after sys.path setup)
+
+if __name__ == "__main__":
+    sys.exit(main())

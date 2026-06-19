@@ -1,0 +1,7 @@
+# The isolation lock.
+#
+# agent may run ONLY the launcher, ONLY as the mcp user, with NO arguments.
+# The trailing "" pins it to zero arguments, so `sudo -u mcp run-mcp` is allowed
+# but `sudo -u mcp cat /vault/...`, `sudo -u mcp sh`, or any other command as mcp
+# is refused. The launcher is the agent's single path to the vault.
+agent ALL=(mcp) NOPASSWD: /usr/local/bin/run-mcp ""
