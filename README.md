@@ -115,6 +115,12 @@ Build and run the OS-enforced isolation demo.
 
 <!-- END GENERATED: cli-reference -->
 
+## Built with
+
+Scaffolded from [cordon-starter](https://github.com/joeseverino/cordon-starter):
+the Cordon command-surface contract, the green-gating CI (`cordon / gate`),
+release automation, and the governance setup all come from there.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
