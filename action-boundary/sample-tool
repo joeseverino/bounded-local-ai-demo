@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# sample-tool — a stand-in CLI for the action-boundary demo.
+#
+# Its only job is to declare three commands at three points on the Cordon effect
+# ladder, so the gate has something real to risk-gate. `--describe` emits the
+# command-surface contract; the handlers just echo, so running one is harmless.
+set -euo pipefail
+
+if [ "${1:-}" = "--describe" ]; then
+    cat <<'JSON'
+{"ok":true,"schema_version":4,"name":"sample-tool","description":"Stand-in tool for the action-boundary demo.","group":"Demos","order":2,"effect":"read","global_options":[],"positionals":[],"paras":[],"examples":[],"commands":[{"name":"status","summary":"Read-only status.","args":[],"effect":"read","paras":[],"examples":[]},{"name":"build","summary":"Write to the local filesystem.","args":[],"effect":"local_write","paras":[],"examples":[]},{"name":"deploy","summary":"Ship to production.","args":[],"effect":"deploy","network":true,"paras":[],"examples":[]}]}
+JSON
+    exit 0
+fi
+
+case "${1:-}" in
+    status) echo "sample-tool: read status (nothing changed)" ;;
+    build)  echo "sample-tool: wrote build output to the local filesystem" ;;
+    deploy) echo "sample-tool: DEPLOYED to production" ;;
+    *) echo "usage: sample-tool {status|build|deploy}" >&2; exit 2 ;;
+esac
