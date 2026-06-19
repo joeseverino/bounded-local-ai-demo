@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Isolation checks, run as the unprivileged `agent` user.
 
-Proves four properties of the bounded-local-AI isolation deployment:
+Proves the bounded-local-AI isolation properties:
 
   1. The agent cannot read the vault directly       (filesystem permission denied)
   2. The agent cannot borrow mcp's read another way (sudo refuses anything but the launcher)
   3. Internal content IS reachable through the MCP   (the gate releases it)
-  4. Restricted content is withheld through the MCP  (the gate holds it back)
+  4. Sensitive content is released with an advisory  (the gate annotates, not just gates)
+  5. Restricted content is withheld through the MCP  (the gate holds it back)
 
 Exit code is non-zero if any property fails, so this doubles as a CI assertion.
 """
@@ -27,7 +28,8 @@ VAULT = "/vault"
 KNOWN_RESTRICTED_PATH = f"{VAULT}/02 Infrastructure/Local PKI/Offline CA.md"
 LAUNCHER = ["sudo", "-u", "mcp", "/usr/local/bin/run-mcp"]
 
-INTERNAL_DOC = "rb-generate-internal-cert"  # internal -> body released
+INTERNAL_DOC = "rb-generate-internal-cert"  # internal  -> body released
+SENSITIVE_DOC = "infra-service-handoff"      # sensitive -> body released + advisory
 RESTRICTED_DOC = "infra-offline-ca"          # restricted -> body withheld
 
 results: list[tuple[bool, str, str]] = []
@@ -117,6 +119,18 @@ async def check_mcp_internal_released() -> None:
     record(ok, "internal doc released via MCP", f"{INTERNAL_DOC}: body={len(body)} chars")
 
 
+async def check_mcp_sensitive_advisory() -> None:
+    data = await mcp_read(SENSITIVE_DOC)
+    body = data.get("body") or ""
+    advisory = data.get("advisory") or ""
+    ok = bool(body.strip()) and bool(advisory.strip())
+    record(
+        ok,
+        "sensitive doc released with advisory",
+        f"{SENSITIVE_DOC}: body={len(body)} chars; advisory={'set' if advisory else 'missing'}",
+    )
+
+
 async def check_mcp_restricted_withheld() -> None:
     data = await mcp_read(RESTRICTED_DOC)
     body = data.get("body") or ""
@@ -132,6 +146,10 @@ async def main() -> int:
         await check_mcp_internal_released()
     except Exception as exc:  # noqa: BLE001
         record(False, "internal doc released via MCP", f"client error: {exc}")
+    try:
+        await check_mcp_sensitive_advisory()
+    except Exception as exc:  # noqa: BLE001
+        record(False, "sensitive doc released with advisory", f"client error: {exc}")
     try:
         await check_mcp_restricted_withheld()
     except Exception as exc:  # noqa: BLE001
