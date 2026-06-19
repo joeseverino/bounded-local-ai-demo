@@ -17,7 +17,7 @@ const pad = (s, n) => String(s).padEnd(n);
 
 const out = [];
 out.push('');
-out.push("  Bounded Local AI Workflows — action-boundary gate (Cordon)");
+out.push("  Bounded Local AI Workflows: action-boundary gate (Cordon)");
 out.push('');
 out.push(`  ${pad('command', 10)}${pad('effect', 14)}${pad('local', 10)}strict`);
 out.push(`  ${pad('-'.repeat(7), 10)}${pad('-'.repeat(11), 14)}${pad('-'.repeat(7), 10)}${'-'.repeat(6)}`);

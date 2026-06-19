@@ -135,8 +135,12 @@ async def check_mcp_restricted_withheld() -> None:
     data = await mcp_read(RESTRICTED_DOC)
     body = data.get("body") or ""
     withheld = not body.strip()
-    advisory = (data.get("advisory") or "")[:48]
-    record(withheld, "restricted doc withheld via MCP", f"{RESTRICTED_DOC}: body={len(body)} chars; advisory={advisory!r}")
+    has_advisory = bool((data.get("advisory") or "").strip())
+    record(
+        withheld,
+        "restricted doc withheld via MCP",
+        f"{RESTRICTED_DOC}: body={len(body)} chars; advisory={'set' if has_advisory else 'missing'}",
+    )
 
 
 async def main() -> int:
@@ -155,7 +159,7 @@ async def main() -> int:
     except Exception as exc:  # noqa: BLE001
         record(False, "restricted doc withheld via MCP", f"client error: {exc}")
 
-    print("\n  Bounded Local AI Workflows — isolation checks (running as 'agent')\n")
+    print("\n  Bounded Local AI Workflows: read-boundary isolation checks (as 'agent')\n")
     width = max(len(name) for _, name, _ in results)
     all_ok = True
     for ok, name, detail in results:
