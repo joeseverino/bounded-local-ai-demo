@@ -15,19 +15,23 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-IMAGE = "bounded-local-ai-demo"
-DOCKERFILE = ROOT / "container" / "Dockerfile"
+IMAGE_READ = "bounded-local-ai-demo-read"
+IMAGE_GATE = "bounded-local-ai-demo-gate"
+DOCKERFILE_READ = ROOT / "read-boundary" / "Dockerfile"
+DOCKERFILE_GATE = ROOT / "action-boundary" / "Dockerfile"
 
 GROUP = "Demos"
 ORDER = 1
 PARAS = [
-    "Builds and runs the bounded-local-AI isolation demo: a container in which "
-    "the MCP serves a sample vault that only the mcp user can read, and an "
-    "unprivileged agent user can reach it only through the MCP sensitivity gate.",
+    "Builds and runs the two bounded-local-AI demos. The read boundary is a "
+    "container where the MCP serves a sample vault that only the mcp user can "
+    "read, and an unprivileged agent reaches it only through the sensitivity "
+    "gate. The action boundary runs Cordon's effect gate over a sample tool to "
+    "show allow / confirm / block decisions per deployment posture.",
 ]
 EXAMPLES = [
-    {"command": "bounded-local-ai-demo build", "comment": "build the demo image"},
-    {"command": "bounded-local-ai-demo verify", "comment": "run the isolation checks"},
+    {"command": "bounded-local-ai-demo verify", "comment": "read boundary: isolation checks"},
+    {"command": "bounded-local-ai-demo gate", "comment": "action boundary: effect-gate matrix"},
 ]
 
 
@@ -47,7 +51,7 @@ except ModuleNotFoundError:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="bounded-local-ai-demo",
-        description="Build and run the OS-enforced isolation demo.",
+        description="Build and run the bounded-local-AI demos (read + action boundary).",
     )
     parser.add_argument(
         "--describe",
@@ -61,17 +65,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", metavar="<command>")
 
-    p_build = sub.add_parser("build", help="Build the demo container image.")
+    p_build = sub.add_parser("build", help="Build both demo images (read + action boundary).")
     p_build.add_argument(
-        "--mcp-ref", default="main", help="severino-vault-mcp git ref to build from"
+        "--mcp-ref", default="main", help="severino-vault-mcp git ref for the read-boundary image"
     )
-    sub.add_parser("verify", help="Run the isolation checks in a throwaway container.")
-    sub.add_parser("clean", help="Remove the demo image.")
+    sub.add_parser("verify", help="Read boundary: run the isolation checks in a throwaway container.")
+    sub.add_parser("gate", help="Action boundary: print the Cordon effect-gate decision matrix.")
+    sub.add_parser("clean", help="Remove both demo images.")
 
-    # Blast radius on the Cordon ladder. build pulls the base image and clones the
-    # MCP (network); verify and clean only touch local docker/container state.
+    # Blast radius on the Cordon ladder. build pulls base images and clones the
+    # MCP and cordon (network); verify/gate/clean only touch local docker state.
     _set_effect(p_build, "local_write", network=True)
     _set_effect(sub.choices["verify"], "local_write")
+    _set_effect(sub.choices["gate"], "local_write")
     _set_effect(sub.choices["clean"], "local_write")
     return parser
 
@@ -108,17 +114,25 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     if args.command == "build":
-        return _run(
+        rc = _run(
             [
                 "docker", "build",
-                "-f", str(DOCKERFILE),
+                "-f", str(DOCKERFILE_READ),
                 "--build-arg", f"MCP_REF={args.mcp_ref}",
-                "-t", IMAGE, str(ROOT),
+                "-t", IMAGE_READ, str(ROOT),
             ]
         )
+        if rc:
+            return rc
+        return _run(
+            ["docker", "build", "-f", str(DOCKERFILE_GATE), "-t", IMAGE_GATE, str(ROOT)]
+        )
     if args.command == "verify":
-        return _run(["docker", "run", "--rm", IMAGE])
+        return _run(["docker", "run", "--rm", IMAGE_READ])
+    if args.command == "gate":
+        return _run(["docker", "run", "--rm", IMAGE_GATE])
     if args.command == "clean":
-        return _run(["docker", "rmi", "-f", IMAGE])
+        rc = _run(["docker", "rmi", "-f", IMAGE_READ])
+        return _run(["docker", "rmi", "-f", IMAGE_GATE]) or rc
     parser.error(f"unknown command: {args.command}")
     return 2

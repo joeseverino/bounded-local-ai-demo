@@ -97,14 +97,17 @@ def _data_from_result(result) -> dict:
 
 async def mcp_read(doc_id: str, *, include_restricted: bool = False) -> dict:
     params = StdioServerParameters(command=LAUNCHER[0], args=LAUNCHER[1:])
-    async with stdio_client(params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            result = await session.call_tool(
-                "read_doc",
-                {"doc_id": doc_id, "include_restricted": include_restricted},
-            )
-            return _data_from_result(result)
+    # Send the MCP server's own stderr (uv launch + FastMCP request logs) to
+    # /dev/null so the demo output is just the checks, not framework chatter.
+    with open(os.devnull, "w") as errlog:
+        async with stdio_client(params, errlog=errlog) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(
+                    "read_doc",
+                    {"doc_id": doc_id, "include_restricted": include_restricted},
+                )
+                return _data_from_result(result)
 
 
 async def check_mcp_internal_released() -> None:

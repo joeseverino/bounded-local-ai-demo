@@ -39,16 +39,16 @@ RUN cp -R /opt/mcp/examples/sample-vault /vault \
 
 # The locked launcher: the single channel to the vault. Runs the MCP as mcp with
 # the vault path fixed. Root-owned, not writable by agent.
-COPY container/run-mcp /usr/local/bin/run-mcp
+COPY read-boundary/run-mcp /usr/local/bin/run-mcp
 RUN chmod 0755 /usr/local/bin/run-mcp
 
 # sudoers: agent may run ONLY run-mcp (no args) as mcp. Not a shell, not cat.
-COPY container/agent.sudoers /etc/sudoers.d/agent
+COPY read-boundary/agent.sudoers /etc/sudoers.d/agent
 RUN chmod 0440 /etc/sudoers.d/agent && visudo -cf /etc/sudoers.d/agent
 
 # The agent's verification client needs the MCP Python client library.
 RUN pip install --no-cache-dir "mcp>=1.0"
-COPY container/verify.py /usr/local/bin/verify.py
+COPY read-boundary/verify.py /usr/local/bin/verify.py
 
 USER agent
 WORKDIR /home/agent
