@@ -154,6 +154,22 @@ Build and run the bounded-local-AI demos (read + action boundary).
 
 <!-- END GENERATED: cli-reference -->
 
+## Screenshots
+
+Read boundary:
+
+![Read-boundary isolation checks: all five properties pass](docs/images/read-boundary-checks.png)
+
+![Direct read denied, then the same content served through the MCP gate (sensitive doc, with advisory) and a restricted doc withheld](docs/images/read-boundary-contrast.png)
+
+Action boundary:
+
+![Effect-gate decision matrix: allow / confirm / block across the local and strict postures](docs/images/action-boundary-matrix.png)
+
+![A deploy must be confirmed before it runs](docs/images/action-boundary-confirm.png)
+
+![With no TTY to confirm on, the deploy fails closed instead of running](docs/images/action-boundary-failclosed.png)
+
 ## Built with
 
 Scaffolded from [cordon-starter](https://github.com/joeseverino/cordon-starter):
