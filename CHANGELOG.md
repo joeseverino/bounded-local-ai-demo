@@ -8,6 +8,14 @@ Two axes, kept distinct:
   (currently `4`, schema `cordon-v4.json`). Tracked separately because a project
   can stay on the starter while the contract revs.
 
+## 1.0.0 (2026-06-19)
+
+
+### Features
+
+* add action-boundary effect-gate demo; split into read-boundary + action-boundary ([#2](https://github.com/joeseverino/bounded-local-ai-demo/issues/2)) ([1c08722](https://github.com/joeseverino/bounded-local-ai-demo/commit/1c08722d7573ff04392595460a0ca8ea07bd541d))
+* add sensitive tier + mcp-read helper for the read-boundary contrast ([#4](https://github.com/joeseverino/bounded-local-ai-demo/issues/4)) ([bb43393](https://github.com/joeseverino/bounded-local-ai-demo/commit/bb433931b668527c842c2b7f1cd6291a12ad93c9))
+
 ## 1.0.0 (2026-06-16)
 
 
