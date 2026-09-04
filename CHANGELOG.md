@@ -8,6 +8,13 @@ Two axes, kept distinct:
   (currently `4`, schema `cordon-v4.json`). Tracked separately because a project
   can stay on the starter while the contract revs.
 
+## [1.0.1](https://github.com/joeseverino/bounded-local-ai-demo/compare/v1.0.0...v1.0.1) (2026-09-04)
+
+
+### Bug Fixes
+
+* chain the repo hook to the user-global hook ([#8](https://github.com/joeseverino/bounded-local-ai-demo/issues/8)) ([fc20301](https://github.com/joeseverino/bounded-local-ai-demo/commit/fc203018d02632ccce34aacd62a020114205108c))
+
 ## 1.0.0 (2026-06-19)
 
 
