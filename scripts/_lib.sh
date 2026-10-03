@@ -2,10 +2,9 @@
 # shellcheck disable=SC2034  # palette vars are read by the scripts that source this
 # _lib.sh — shared presentation for this scaffold's scripts. Sourced, not run.
 #
-# Lives INSIDE the starter on purpose. try.sh and check.sh must render even
-# before $TOOLS_HOME or $CORDON_HOME exist, so the chrome carries no external
-# dependency. The contract *truth* (schema, validator, checks runner) is still
-# sourced from cordon via $CORDON_HOME — only the cosmetics live here.
+# Lives INSIDE the starter on purpose: try.sh must render before $TOOLS_HOME
+# exists, so the chrome carries no external dependency. The contract truth
+# (schema, validator, checks engine) comes from the cordon-spec package.
 #
 # Palette voices: CY narrates the framework; tools keep their own GR/YE.
 

@@ -70,29 +70,28 @@ deliberately with `ALLOW_MAIN_COMMIT=1` / `git … --no-verify`.
 
 ## CI and security
 
-- `.github/workflows/ci.yml` runs **`scripts/check.sh --ci`** — the *same* gate
-  the pre-push hook and you run, in its no-toolchain mode (shellcheck + schema
-  conformance via cordon's own harness at `$CORDON_HOME` — cordon is
-  referenced, never vendored). One definition, so CI and local can't drift.
+- `.github/workflows/ci.yml` calls cordon's reusable gate (`@v2`), which runs
+  the same checks engine `scripts/check.sh` runs locally. One engine, so CI and
+  local can't drift.
 - Add language-specific lint/scanners per the repo's narrative. Security-focused
   repos get a visible scanner (Semgrep/CodeQL) + badge; a plain CLI gets
   lint-only. See `docs/CORNERSTONES.md`.
 - **Contract drift is a CI failure waiting to happen — catch it locally.** Run
   `scripts/check.sh` before pushing: the engine's `drift` check re-emits each
   tool's `--describe` and diffs it against the committed `contract/*.json`
-  (it's `!ci`-gated — local only; here it needs the `describe` extra, so run it
+  (local only; here it needs the `describe` extra, so run it
   under `uv run`). Regenerate and commit the golden when the surface changes.
-- `scripts/check.sh` is the identical wrapper every cordon repo ships; it runs
-  cordon's checks engine over `cordon.checks.json`. Pass engine flags through —
+- `scripts/check.sh` is the identical one-liner every cordon repo ships:
+  `npx --yes --package cordon-spec@2 cordon-checks --root .`. Pass engine flags through:
   **`--json`** for a machine-readable result object (prefer it as an agent).
 
 ## Repo checks config (`cordon.checks.json`)
 
-cordon's **checks engine** (`$CORDON_HOME/checks/run.mjs`, the `run_checks` step)
+cordon's **checks engine** (`cordon-checks` from the `cordon-spec` package)
 runs two kinds of check over the repo through one loop:
 
 - **invariants** — cordon's built-in, portable rules (no secrets/build output
-  tracked, Actions pinned, internal links resolve, …). They run with zero config.
+  tracked, Actions pinned, worktree idempotence, …). They run with zero config.
 - **commands** — *your* repo's own spawned specs (a test suite, a type check, a
   bespoke audit), declared as data in `cordon.checks.json` `commands[]`. The spec
   code stays in your repo; the engine just runs it and folds it into one verdict.
@@ -107,13 +106,12 @@ editor autocompletes every key (including each `commands[]` entry), documents it
 on hover, and flags typos as you type. No shape to memorize.
 
 **Most checks are off until the repo earns them.** Each check declares the
-capabilities it `requires` (`git` / `macos` / `ci` / `built-dir` / any `<binary>`
-like `playwright`, plus `!cap` to negate); the engine detects what's present and
-**skips fail-soft** what isn't. So a `playwright` command runs only where
-playwright is installed, a `built-dir` check only after a build — the default
-posture is lean, and you opt in by adding the capability, not by flipping a flag.
+capabilities it `requires` (`git` / `macos` / `ci` / any `<binary>` like `tsc`,
+plus `!cap` to negate); the engine detects what's present and **skips
+fail-soft** what isn't. So a `tsc` command runs only where tsc is installed: the
+default posture is lean, and you opt in by adding the capability, not by flipping a flag.
 
-- See what applies to this repo: `node "$CORDON_HOME/checks/run.mjs" --list`
+- See what applies to this repo: `scripts/check.sh --list`
   (or open `cordon.checks.json` and let the schema prompt you). `--json` is the
   agent contract; `--phase pre-build|build|post-build` runs one phase.
 - The `idempotence` knob ships **off** (`"command": null`). When you add a
@@ -134,20 +132,19 @@ posture is lean, and you opt in by adding the capability, not by flipping a flag
 ## Environment it assumes
 
 These repos live in the Severino Code tree and read paths from `~/.zshrc`
-(single source of truth — don't hardcode `$HOME/Documents/...`):
+(single source of truth; don't hardcode `$HOME/Code/...`):
 
 | var | is |
 |---|---|
-| `$CODE_HOME` | `~/Documents/Code` |
+| `$CODE_HOME` | `~/Code` |
 | `$PROJECTS_HOME` | `$CODE_HOME/Projects` |
 | `$ASSETS_HOME` | `$CODE_HOME/Assets` |
 | `$TOOLS_HOME` | `$ASSETS_HOME/tools` — the canonical `describe.sh` lives here |
-| `$CORDON_HOME` | `$ASSETS_HOME/cordon` — the schema + conformance harness this validates against |
 | `$NOTES_HOME` | the Obsidian vault |
 
 ## Verify before handing back
 
 ```sh
-scripts/check.sh        # shellcheck + contract drift + schema conformance
+scripts/check.sh        # cordon's checks: shellcheck, contract drift, conformance
 git diff --check        # no whitespace damage
 ```

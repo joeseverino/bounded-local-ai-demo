@@ -18,7 +18,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "cordon-emit", git = "https://github.com/joeseverino/cordon?subdirectory=emitters%2Fpython" },
+    { name = "cordon-emit", specifier = "==2.0.0" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = ">=0.6" },
 ]
@@ -34,8 +34,12 @@ wheels = [
 
 [[package]]
 name = "cordon-emit"
-version = "0.1.0"
-source = { git = "https://github.com/joeseverino/cordon?subdirectory=emitters%2Fpython#5a6632fbf3643bfe8309f88779826cfe30a955f9" }
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/c5/2b9d1a8ff8b3e56af5e626694b1800f909e29f7408482c4b298b0a5b8365/cordon_emit-2.0.0.tar.gz", hash = "sha256:98ce764f737ee3f64b39f47b6bb7b440f83c4ebffade8266aa0e631aa4a204f2", size = 10967, upload-time = "2026-10-03T21:29:30.146Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/eb/326e22b4ccd7b31ce0c1a5e4daa8d11ce1e1e61c683239d5663311b3a7d8/cordon_emit-2.0.0-py3-none-any.whl", hash = "sha256:0980057b3cf8032e770714ba87b331d5f9e8d5683ef66f3588b3a9090381e200", size = 9547, upload-time = "2026-10-03T21:29:28.548Z" },
+]
 
 [[package]]
 name = "iniconfig"
