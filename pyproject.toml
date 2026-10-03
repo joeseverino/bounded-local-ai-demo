@@ -10,10 +10,7 @@ dependencies = []
 # Dev-only toolchain, synced by default with `uv sync`. Running the demo itself
 # needs only Docker; these are for regenerating the contract, linting, and tests.
 [dependency-groups]
-dev = ["cordon-emit", "ruff>=0.6", "pytest>=8"]
-
-[tool.uv.sources]
-cordon-emit = { git = "https://github.com/joeseverino/cordon", subdirectory = "emitters/python" }
+dev = ["cordon-emit==2.0.0", "ruff>=0.6", "pytest>=8"]
 
 [tool.ruff]
 target-version = "py311"
