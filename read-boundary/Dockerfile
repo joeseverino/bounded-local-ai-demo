@@ -5,35 +5,30 @@
 # user; the unprivileged `agent` user has no read access and can reach the MCP
 # only through a locked sudo launcher that runs the MCP as `mcp`. There is no
 # out-of-band filesystem path for the agent.
-FROM python:3.12-slim
+FROM golang:1.27.2-bookworm@sha256:5cf287a799e6b94384bad13d16b14904c531f51ba65792237e122ce42b392f61 AS build
 
-# The MCP uses ripgrep (body search) and fd (vault indexing); sudo enforces the
-# single channel; git clones the MCP; ca-certificates for the clone.
+# The MCP is a single static Go binary; build it from source at MCP_REF.
+ARG MCP_REF=main
+RUN git clone --depth 1 --branch "${MCP_REF}" \
+        https://github.com/joeseverino/severino-vault-mcp /src \
+    && cd /src \
+    && CGO_ENABLED=0 go build -trimpath -o /out/severino-vault-mcp ./cmd/severino-vault-mcp
+
+FROM python:3.14-slim@sha256:f85c5697265c178cc6887276c55fe16cf3d14ca35c3df6a5eab3b360534a55d2
+
+# The MCP uses ripgrep for body search; sudo enforces the single channel.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        sudo git ca-certificates ripgrep fd-find \
-    && rm -rf /var/lib/apt/lists/* \
-    && ln -s "$(command -v fdfind)" /usr/local/bin/fd
-
-# uv installs and runs the MCP from its own lockfile.
-RUN pip install --no-cache-dir uv
+        sudo ca-certificates ripgrep \
+    && rm -rf /var/lib/apt/lists/*
 
 # Two principals. mcp owns the vault; agent is the untrusted client.
 RUN useradd -m -u 1001 mcp && useradd -m -u 1002 agent
 
-# Build the MCP as the mcp user so the venv is owned by mcp.
-ARG MCP_REF=main
-ENV UV_CACHE_DIR=/home/mcp/.cache/uv UV_NO_PROGRESS=1
-RUN git clone --depth 1 --branch "${MCP_REF}" \
-        https://github.com/joeseverino/severino-vault-mcp /opt/mcp \
-    && chown -R mcp:mcp /opt/mcp
-USER mcp
-WORKDIR /opt/mcp
-RUN uv sync --no-editable --frozen
-USER root
+COPY --from=build /out/severino-vault-mcp /usr/local/bin/severino-vault-mcp
 
 # The vault: the MCP's bundled sample vault (fake data), locked to mcp only.
 # go-rwx removes all access for group/other, so `agent` cannot read or list it.
-RUN cp -R /opt/mcp/examples/sample-vault /vault
+COPY --from=build /src/examples/sample-vault /vault
 # Add a `sensitive`-tier sample doc so the demo shows all three gate behaviors:
 # internal (released), sensitive (released + advisory), restricted (withheld).
 COPY ["read-boundary/sensitive-sample.md", "/vault/02 Infrastructure/Service Handoff.md"]
