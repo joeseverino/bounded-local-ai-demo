@@ -1,21 +1,21 @@
 #!/usr/bin/env node
-// policy-matrix.mjs — the action-boundary decision matrix.
+// policy-matrix.ts — the action-boundary decision matrix.
 //
 // Reads a tool's declared effects from its `--describe` contract and prints what
 // Cordon's gate would decide for each command under the `local` (trusted
 // single-operator, fail open) and `strict` (multi-tenant / remote, fail closed)
-// presets. Pure decision logic from cordon's policy.mjs — no command is run.
+// presets. Pure decision logic from cordon's policy.ts — no command is run.
 import { execFileSync } from 'node:child_process';
-import { PRESETS, verdict, resolveEffect } from '/opt/cordon/harness/policy.mjs';
+import { PRESETS, verdict, resolveEffect, type EffectContract, type Preset } from '/opt/cordon/harness/policy.ts';
 
 const TOOL = process.argv[2] || 'sample-tool';
-const contract = JSON.parse(execFileSync(TOOL, ['--describe'], { encoding: 'utf8' }));
-const commands = (contract.commands || []).map((c) => c.name);
+const contract: EffectContract = JSON.parse(execFileSync(TOOL, ['--describe'], { encoding: 'utf8' }));
+const commands = (contract.commands ?? []).map((command) => command.name);
 
-const decide = (effect, preset) => verdict(effect, preset).decision;
-const pad = (s, n) => String(s).padEnd(n);
+const decide = (effect: string | undefined, preset: Preset) => verdict(effect, preset).decision;
+const pad = (value: string | undefined, width: number) => String(value).padEnd(width);
 
-const out = [];
+const out: string[] = [];
 out.push('');
 out.push("  Bounded Local AI Workflows: action-boundary gate (Cordon)");
 out.push('');

@@ -99,7 +99,7 @@ def _data_from_result(result) -> dict:
 
 async def mcp_read(doc_id: str, *, include_restricted: bool = False) -> dict:
     params = StdioServerParameters(command=LAUNCHER[0], args=LAUNCHER[1:])
-    # Send the MCP server's own stderr (uv launch + FastMCP request logs) to
+    # Send the MCP server's own stderr (request logs) to
     # /dev/null so the demo output is just the checks, not framework chatter.
     with open(os.devnull, "w") as errlog:
         async with stdio_client(params, errlog=errlog) as (read, write):

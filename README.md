@@ -102,7 +102,7 @@ docker run --rm -i -e CORDON_POLICY=strict --entrypoint cordon-gate bounded-loca
 
 ```
 read-boundary/      the OS-enforced isolation container
-  Dockerfile          installs the MCP as mcp, copies the sample vault (go-rwx)
+  Dockerfile          builds the Go MCP, copies the sample vault (go-rwx)
   run-mcp             the single channel: runs the MCP as mcp over stdio
   agent.sudoers       the lock: agent may run only run-mcp (no args) as mcp
   verify.py           the isolation checks, run as agent
@@ -110,7 +110,7 @@ read-boundary/      the OS-enforced isolation container
 action-boundary/    the Cordon effect-gate demo
   Dockerfile          clones cordon (zero-dependency harness), adds the sample tool
   sample-tool         declares read / local_write / deploy commands
-  policy-matrix.mjs   prints the allow / confirm / block decision matrix
+  policy-matrix.ts    prints the allow / confirm / block decision matrix
 ```
 
 The throughline: "reachable only through the gate" and "no irreversible action
